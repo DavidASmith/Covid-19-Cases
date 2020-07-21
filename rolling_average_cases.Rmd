@@ -1,0 +1,83 @@
+---
+title: "Rolling Average Cases"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r include=FALSE}
+
+library(tidyverse)
+library(zoo)
+library(sf)
+library(tmap)
+library(lubridate)
+```
+
+```{r include=FALSE}
+
+cases <- readRDS("source-data/ltla-cases.RDS")
+cases %>% 
+  group_by(specimenDate) %>% 
+  summarise(total_cases = sum(dailyLabConfirmedCases)) %>% 
+  arrange(desc(specimenDate))
+
+map <- readRDS("source-data/map.RDS")
+
+
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# Get most recent specimen date
+most_recent_specimen <- max(cases$specimenDate)
+
+# Get date 2 days before last updated date
+most_recent_included_date <- most_recent_specimen - days(2)
+
+# filter out last two days (cases unlikely to be up to date)
+cases <- cases %>%
+  filter(specimenDate <= most_recent_included_date)
+
+# Calculate rolling means (and change in rolling mean)
+roll_mean_cases <- cases %>% 
+  group_by(areaCode) %>% 
+  arrange(specimenDate) %>% 
+  mutate(rolling_mean_cases = round(rollmeanr(dailyLabConfirmedCases, 7, fill = NA), 3), 
+         rolling_mean_change = round(rolling_mean_cases - lag(rolling_mean_cases, 7), 3)) %>% 
+  ungroup()
+
+latest_roll_mean_cases <- roll_mean_cases %>% 
+  group_by(areaCode) %>% 
+  slice(which.max(specimenDate)) %>% 
+  ungroup()
+
+# Join to map
+latest_roll_mean_cases_map <- map %>% 
+  inner_join(latest_roll_mean_cases, by = c("lad19cd" = "areaCode"))
+
+```
+
+This map shows, for each local authority, the rolling mean of daily lab confirmed cases over seven days to **`r most_recent_included_date`**.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+tmap_mode("view")
+
+tm_basemap("CartoDB.Positron") +
+  tm_shape(latest_roll_mean_cases_map, 
+           name = "Lower Tier Local Authority") +
+  tm_polygons(col = "rolling_mean_cases", 
+              style = "cont", 
+              id = "areaName", 
+              alpha = 0.75, 
+              title ="Rolling Mean Cases", 
+              popup.vars = c("Rolling Mean Cases" = "rolling_mean_cases"))
+
+
+```
+

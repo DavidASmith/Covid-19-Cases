@@ -1,0 +1,17 @@
+---
+name: "Lab Confirmed Covid-19 Cases"
+output_dir: "docs"
+navbar:
+  title: "Lab Confirmed Covid-19 Cases"
+  left:
+  -  text: "Source Data"
+     href: index.html
+  -  text: "Total Cases Rate"
+     href: latest_case_rate.html
+  -  text: "Rolling Average Cases"
+     href: rolling_average_cases.html
+  -  text: "Change in Rolling Average"
+     href: change_rolling_average_cases.html
+output:
+  html_document:
+      theme: cosmo

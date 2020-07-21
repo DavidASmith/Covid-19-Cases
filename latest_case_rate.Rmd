@@ -1,0 +1,59 @@
+---
+title: "Total Cases Rate"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r include=FALSE}
+
+library(tidyverse)
+library(zoo)
+library(sf)
+library(tmap)
+```
+
+```{r include=FALSE}
+
+cases <- readRDS("source-data/ltla-cases.RDS")
+cases %>% 
+  group_by(specimenDate) %>% 
+  summarise(total_cases = sum(dailyLabConfirmedCases)) %>% 
+  arrange(desc(specimenDate))
+
+map <- readRDS("source-data/map.RDS")
+
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Get latest
+latest_cases <- cases %>% 
+  group_by(areaCode) %>% 
+  slice(which.max(specimenDate)) %>% 
+  ungroup()
+
+# Plot latest case rate
+latest_cases_map <- map %>% 
+  left_join(latest_cases, by = c("lad19cd" = "areaCode")) %>% 
+  filter(!is.na(areaName))
+
+# Plot map
+tmap_mode("view")
+#qtm(latest_cases_map, fill = "dailyTotalLabConfirmedCasesRate")
+
+tm_basemap("CartoDB.Positron") +
+  tm_shape(latest_cases_map, 
+           name = "Lower Tier Local Authority") +
+  tm_polygons(col = "dailyTotalLabConfirmedCasesRate", 
+              style = "cont", 
+              id = "areaName", 
+              alpha = 0.75, 
+              title ="Total cases per 100,000", 
+              popup.vars = c("Total cases per 100,000" = "dailyTotalLabConfirmedCasesRate"))
+
+```

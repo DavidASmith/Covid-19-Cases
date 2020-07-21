@@ -1,0 +1,74 @@
+---
+title: "Source Data"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r include=FALSE}
+
+library(tidyverse)
+library(zoo)
+library(sf)
+library(tmap)
+library(jsonlite)
+library(lubridate)
+
+```
+
+
+# Lab-Confirmed Cases
+
+```{r include=FALSE}
+json_cases <- fromJSON("https://coronavirus.data.gov.uk/downloads/json/coronavirus-cases_latest.json", flatten = TRUE)
+
+last_acquired <- Sys.time()
+last_updated <- ymd_hms(json_cases$metadata$lastUpdatedAt)
+```
+
+Lab confirmed cases data is acquired from the JSON feed available from the [UK Government Coronavirus Dashboard](https://coronavirus.data.gov.uk/). This data was last acquired at **`r last_acquired`**. The data was last updated at **`r last_updated`**.
+
+## All Lower Tier Local Authority Cases
+
+The data contains numbers of lab-confirmed cases by each lower-tier local authority for each day. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ltla_cases <- json_cases$ltlas %>% 
+  mutate(specimenDate = ymd(specimenDate))
+
+ltla_cases %>% 
+  group_by(specimenDate) %>% 
+  summarise(total_cases = sum(dailyLabConfirmedCases)) %>% 
+  ggplot(aes(specimenDate, total_cases)) + 
+  geom_bar(stat = "identity") + 
+  ggtitle("Total Cases for All Lower Tier Local Authorities")
+
+saveRDS(ltla_cases, "./source-data/ltla-cases.RDS")
+```
+
+Note that confirmed cases for the last few days are likely to be further updated over the coming days.
+
+## Disclaimer
+
+The cases data has the following disclaimer.
+
+```{r echo=FALSE}
+json_cases$metadata$disclaimer
+```
+
+# Lower Tier Local Authority Maps
+
+Map geometry is sourced from [ONS Geography Open Data](https://hub.arcgis.com/datasets/0e07a8196454415eab18c40a54dfbbef_0).
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+map <- st_read("https://opendata.arcgis.com/datasets/0e07a8196454415eab18c40a54dfbbef_0.geojson")
+
+saveRDS(map, "./source-data/map.RDS")
+
+tmap_mode("view")
+
+qtm(map)
+
+```
+
