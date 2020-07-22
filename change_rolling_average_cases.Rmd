@@ -78,7 +78,7 @@ tm_basemap("CartoDB.Positron") +
               id = "areaName", 
               alpha = 0.75, 
               title ="Rolling Mean Change", 
-              popup.vars = c("Rolling Mean Cases" = "rolling_mean_change"), 
+              popup.vars = c("Change in Rolling Mean Cases" = "rolling_mean_change"), 
               palette = "-RdYlGn")
 
 ```
