@@ -63,7 +63,7 @@ latest_roll_mean_cases_map <- map %>%
 
 ```
 
-This map shows, for each local authority, the change in rolling mean of daily lab confirmed cases over seven days from **`r most_recent_included_date - days(7)`** to **`r most_recent_included_date`**.
+This map shows, for each local authority, the _change_ in rolling mean of daily lab confirmed cases over seven days from **`r most_recent_included_date - days(7)`** to **`r most_recent_included_date`**.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
