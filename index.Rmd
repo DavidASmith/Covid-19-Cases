@@ -72,3 +72,6 @@ qtm(map)
 
 ```
 
+# Contact
+
+For more information or to raise any issues, please contact [david.alex.smith@gmail.com](david.alex.smith@gmail.com). Issues can also be raised on [Github](https://github.com/DavidASmith/Covid-19-Cases).
